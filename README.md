@@ -15,36 +15,25 @@ This application demonstrates face matching capabilities using Google Cloud's Al
 *   **Database**: AlloyDB for PostgreSQL storing image references and embeddings.
 *   **AI Model**: `gemini-embedding-2` (multimodal embedding model) accessed natively via AlloyDB.
 
+## New Additions
+
+*   **Containerization**: The backend is packaged in a Docker container for easy deployment.
+*   **Infrastructure as Code**: Terraform scripts are provided to deploy all necessary infrastructure (VPC, AlloyDB, Cloud Run).
+*   **Automation**: A deployment script (`deploy.sh`) automates the build and deployment process.
+
 ## Prerequisites
 
 *   An active Google Cloud project.
-*   An AlloyDB cluster with the `google_ml_integration` extension enabled.
-*   A database named `face-recognition-db` (or as configured).
-*   Python 3.x installed.
+*   Google Cloud SDK (`gcloud`) installed and authenticated.
+*   Terraform installed.
+*   Python 3.x (for local testing).
 
-## Installation Guide
+## Installation & Deployment Guide
 
-### 1. Clone or Download the Project
+### Local Testing
 
-If you haven't already, clone or download this repository to your local machine.
-
-### 2. Set Up the Database
-
-Ensure your AlloyDB instance is running and you have created the necessary table. The backend will attempt to create the table automatically on startup if it has permissions.
-
-The expected schema is:
-```sql
-CREATE TABLE IF NOT EXISTS face_embeddings (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    image_uri TEXT,
-    embedding vector(3072)
-);
-```
-
-### 3. Configure Environment Variables
-
-Set the following environment variables to allow the backend to connect to your AlloyDB instance:
+#### 1. Configure Environment Variables
+Set the following environment variables to allow the backend to connect to your existing AlloyDB instance:
 
 ```bash
 export DB_HOST="YOUR_ALLOYDB_IP"
@@ -53,8 +42,7 @@ export DB_PASSWORD="YOUR_PASSWORD"
 export DB_NAME="face-recognition-db"
 ```
 
-### 4. Install Backend Dependencies
-
+#### 2. Install Backend Dependencies
 Navigate to the `backend` directory and install the required Python packages:
 
 ```bash
@@ -62,21 +50,39 @@ cd backend
 python3 -m pip install -r requirements.txt
 ```
 
-## Running the Application
-
-### 1. Start the Backend
-
-From the `backend` directory, start the FastAPI server using Uvicorn:
-
+#### 3. Run the Backend
 ```bash
 python3 -m uvicorn main:app --reload
 ```
 
-The backend will be available at `http://localhost:8000`.
+#### 4. Access the Frontend
+Open `frontend/index.html` in your browser.
 
-### 2. Access the Frontend
+---
 
-Open the `frontend/index.html` file directly in your web browser. It is configured to communicate with the backend running at `http://localhost:8000`.
+### Cloud Deployment (Terraform & Cloud Run)
+
+#### 1. Configure `config.env`
+Open the `config.env` file in the project root and set your project ID, preferred region, and a secure password for AlloyDB:
+
+```env
+PROJECT_ID=your-project-id
+REGION=us-central1
+DB_PASSWORD=your-secure-password
+```
+
+#### 2. Run the Deployment Script
+Execute the deployment script to build the container image and deploy the infrastructure:
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+*Note: This script uses Cloud Build to build the image and Terraform to deploy. Ensure you have the necessary permissions in your GCP project.*
+
+#### 3. Access the Application
+The script will output the Cloud Run URL. Open `frontend/index.html` in your browser; it will be automatically updated to use the new Cloud Run URL.
 
 ## License
 
