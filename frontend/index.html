@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Matching</title>
+    <style>
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #3c4043;
+            background-color: #fff;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #1a73e8;
+            font-weight: 400;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: #fff;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #202124;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .form-group input[type="file"] {
+            padding: 8px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #1765cc;
+        }
+        button:focus {
+            outline: none;
+            background-color: #1765cc;
+        }
+        .results-area {
+            margin-top: 20px;
+        }
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-item .name {
+            flex-grow: 1;
+            font-weight: 500;
+        }
+        .result-item .percentage {
+            color: #188038;
+            font-weight: 500;
+            margin-left: 20px;
+        }
+        .result-item .uri {
+            color: #70757a;
+            font-size: 12px;
+            margin-left: 20px;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #5f6368;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .tab.active {
+            border-bottom-color: #1a73e8;
+            color: #1a73e8;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Face Matching Service</h1>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>Perform Face Matching</h2>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('local')">Local Upload</div>
+            <div class="tab" onclick="switchTab('gcs')">GCS Bucket</div>
+        </div>
+        
+        <div id="local-tab" class="tab-content active">
+            <div class="form-group">
+                <label for="local-file">Select Image from Local Directory</label>
+                <input type="file" id="local-file" accept="image/*">
+            </div>
+        </div>
+        
+        <div id="gcs-tab" class="tab-content">
+            <div class="form-group">
+                <label for="bucket-name">GCS Bucket Name</label>
+                <input type="text" id="bucket-name" placeholder="e.g., my-face-images">
+            </div>
+            <div class="form-group">
+                <label for="object-name">Image Path/Name in Bucket</label>
+                <input type="text" id="object-name" placeholder="e.g., folder/image.jpg">
+            </div>
+        </div>
+        
+        <button id="match-btn" onclick="performMatching()">Perform Matching</button>
+        
+        <div class="results-area">
+            <h3>Matching Results</h3>
+            <div id="results-list">
+                <!-- Results will appear here -->
+                <div style="color: #70757a; text-align: center; padding: 20px;">No results yet. Perform matching to see results.</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Bulk Insert Reference Images</h2>
+        <div class="form-group">
+            <label for="bulk-bucket">GCS Bucket Name</label>
+            <input type="text" id="bulk-bucket" placeholder="e.g., my-reference-faces">
+        </div>
+        <div class="form-group">
+            <label for="bulk-prefix">Prefix (Optional Location)</label>
+            <input type="text" id="bulk-prefix" placeholder="e.g., dataset1/">
+        </div>
+        <button id="bulk-btn" onclick="performBulkInsert()">Bulk Insert</button>
+        <div id="bulk-status" style="margin-top: 10px; font-size: 14px;"></div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        if (tab === 'local') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('local-tab').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('gcs-tab').classList.add('active');
+        }
+    }
+</script>
+</body>
+</html>

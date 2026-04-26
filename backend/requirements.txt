@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+asyncpg
+google-cloud-storage
+python-multipart
