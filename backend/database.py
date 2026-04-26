@@ -18,7 +18,8 @@ async def get_pool():
                 host=DB_HOST,
                 user=DB_USER,
                 password=DB_PASSWORD,
-                database=DB_NAME
+                database=DB_NAME,
+                ssl='require'
             )
         except Exception as e:
             print(f"Error creating connection pool: {e}")
