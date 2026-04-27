@@ -36,7 +36,10 @@ resource "google_service_networking_connection" "default" {
 resource "google_alloydb_cluster" "default" {
   cluster_id = "face-matching-cluster"
   location   = var.region
-  network    = google_compute_network.vpc_network.id
+
+  network_config {
+    network = google_compute_network.vpc_network.id
+  }
 
   depends_on = [google_service_networking_connection.default]
 }
@@ -93,7 +96,7 @@ resource "google_cloud_run_v2_service" "default" {
   }
 
   traffic {
-    type    = "TRAFFIC_TARGET_TYPE_ALL"
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
   }
 }
