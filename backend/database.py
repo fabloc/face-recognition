@@ -37,21 +37,21 @@ async def execute_non_query(query, *args):
         return await conn.execute(query, *args)
 
 async def init_db():
-    # Create table if not exists
-    # We assume vector extension is already enabled in AlloyDB
-    create_table_query = """
-    CREATE TABLE IF NOT EXISTS face_embeddings (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        image_uri TEXT,
-        embedding vector(3072)
-    );
-    """
     try:
+        # Create extension if not exists
+        await execute_non_query("CREATE EXTENSION IF NOT EXISTS vector;")
+        
+        # Create table if not exists
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS face_embeddings (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            image_uri TEXT,
+            embedding vector(3072)
+        );
+        """
         await execute_non_query(create_table_query)
         print("Database initialized.")
     except Exception as e:
         print(f"Failed to initialize database: {e}")
-        # We might not have permission to create table, or extension might be missing
-        # But we proceed assuming it might work or table already exists
-        pass
+        raise e
