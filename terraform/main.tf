@@ -41,6 +41,10 @@ resource "google_alloydb_cluster" "default" {
     network = google_compute_network.vpc_network.id
   }
 
+  initial_user {
+    password = var.db_password
+  }
+
   depends_on = [google_service_networking_connection.default]
 }
 
