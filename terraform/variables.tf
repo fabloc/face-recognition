@@ -20,3 +20,9 @@ variable "image_uri" {
   description = "The URI of the backend Docker image"
   type        = string
 }
+
+variable "model_location" {
+  description = "The location for the embeddings model"
+  type        = string
+  default     = "us-central1"
+}

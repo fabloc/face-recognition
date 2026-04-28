@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import storage
 from database import execute_query, execute_non_query, init_db
 
+PROJECT_ID = os.environ.get("PROJECT_ID", "video-processing-462714")
+MODEL_LOCATION = os.environ.get("MODEL_LOCATION", "us-central1")
+
 app = FastAPI()
 
 # Enable CORS
@@ -40,7 +43,7 @@ async def match_face(
         
         query = """
         SELECT name, image_uri, 1 - (embedding <=> google_ml.image_embedding(
-            model_id => 'gemini-embedding-2',
+            model_id => 'projects/' || $3 || '/locations/' || $4 || '/publishers/google/models/gemini-embedding-2',
             image => $1,
             mimetype => $2)::vector) as similarity
         FROM face_embeddings
@@ -48,7 +51,7 @@ async def match_face(
         LIMIT 5;
         """
         try:
-            results = await execute_query(query, base64_encoded, file.content_type)
+            results = await execute_query(query, base64_encoded, file.content_type, PROJECT_ID, MODEL_LOCATION)
             return format_results(results)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Matching failed: {e}")
@@ -63,7 +66,7 @@ async def match_face(
         
         query = """
         SELECT name, image_uri, 1 - (embedding <=> google_ml.image_embedding(
-            model_id => 'gemini-embedding-2',
+            model_id => 'projects/' || $3 || '/locations/' || $4 || '/publishers/google/models/gemini-embedding-2',
             image => $1,
             mimetype => $2)::vector) as similarity
         FROM face_embeddings
@@ -71,7 +74,7 @@ async def match_face(
         LIMIT 5;
         """
         try:
-            results = await execute_query(query, gcs_uri, mimetype)
+            results = await execute_query(query, gcs_uri, mimetype, PROJECT_ID, MODEL_LOCATION)
             return format_results(results)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Matching failed: {e}")
@@ -114,11 +117,11 @@ async def bulk_insert(bucket_name: str = Form(...), prefix: str = Form("")):
                 query = """
                 INSERT INTO face_embeddings (name, image_uri, embedding)
                 VALUES ($1, $2, google_ml.image_embedding(
-                    model_id => 'gemini-embedding-2',
+                    model_id => 'projects/' || $4 || '/locations/' || $5 || '/publishers/google/models/gemini-embedding-2',
                     image => $2,
                     mimetype => $3)::vector)
                 """
-                await execute_non_query(query, name, gcs_uri, mimetype)
+                await execute_non_query(query, name, gcs_uri, mimetype, PROJECT_ID, MODEL_LOCATION)
                 count += 1
                 
         return {"message": f"Successfully inserted {count} images."}

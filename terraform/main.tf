@@ -89,6 +89,10 @@ resource "google_cloud_run_v2_service" "default" {
         name  = "DB_NAME"
         value = "postgres" # Default db
       }
+      env {
+        name  = "MODEL_LOCATION"
+        value = var.model_location
+      }
     }
 
     vpc_access {

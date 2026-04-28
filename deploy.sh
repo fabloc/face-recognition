@@ -29,6 +29,7 @@ terraform apply \
   -var="region=$REGION" \
   -var="db_password=$DB_PASSWORD" \
   -var="image_uri=$IMAGE_URI" \
+  -var="model_location=$MODEL_LOCATION" \
   -auto-approve
 
 # 3. Get Cloud Run URL
