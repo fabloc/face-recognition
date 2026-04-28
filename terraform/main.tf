@@ -36,6 +36,7 @@ resource "google_service_networking_connection" "default" {
 resource "google_alloydb_cluster" "default" {
   cluster_id = "face-matching-cluster"
   location   = var.region
+  deletion_protection = false
 
   network_config {
     network = google_compute_network.vpc_network.id
