@@ -42,7 +42,7 @@ async def match_face(
         SELECT name, image_uri, 1 - (embedding <=> google_ml.image_embedding(
             model_id => 'gemini-embedding-2',
             image => $1,
-            mimetype => $2)) as similarity
+            mimetype => $2)::vector) as similarity
         FROM face_embeddings
         ORDER BY similarity DESC
         LIMIT 5;
@@ -65,7 +65,7 @@ async def match_face(
         SELECT name, image_uri, 1 - (embedding <=> google_ml.image_embedding(
             model_id => 'gemini-embedding-2',
             image => $1,
-            mimetype => $2)) as similarity
+            mimetype => $2)::vector) as similarity
         FROM face_embeddings
         ORDER BY similarity DESC
         LIMIT 5;
@@ -116,7 +116,7 @@ async def bulk_insert(bucket_name: str = Form(...), prefix: str = Form("")):
                 VALUES ($1, $2, google_ml.image_embedding(
                     model_id => 'gemini-embedding-2',
                     image => $2,
-                    mimetype => $3))
+                    mimetype => $3)::vector)
                 """
                 await execute_non_query(query, name, gcs_uri, mimetype)
                 count += 1
